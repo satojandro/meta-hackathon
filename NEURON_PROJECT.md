@@ -54,15 +54,15 @@ characters by turning neuron dials instead of writing prompts.
   Spark agent labels them against random-direction controls.
 - **Mon–Tue**: atlas web app + persona mixer.
 - **Wed**: record demo. **Thu 5 Nov 1 PM Sydney**: submit.
-- **Stretch**: Fireworks offers free Glimmer fine-tuning until 30 Nov, so we could train a persona LoRA, re-map,
-  and see which neurons changed. Or a one-hour expert-steering teaser on Muse Spark Open.
+- **Future work (dropped 30 Oct)**: train a persona LoRA on Glimmer (Fireworks, free until 30 Nov), re-map, and see
+  which neurons the fine-tune uses. A different approach; not needed for the submission.
 
 ## Sponsor usage
 | Sponsor | Use |
 |---|---|
 | Meta Model API ($150) | Muse Spark as the research agent and labeler |
 | Modal ($100) | GPU for the Glimmer sweep |
-| Fireworks ($100) | Cheap hosted Glimmer/Spark Open for bulk labeling; free Glimmer fine-tuning for the stretch goal |
+| Fireworks ($100) | Cheap hosted Glimmer/Spark Open for bulk labeling |
 | Baseten ($100) | Backup host |
 
 See PRIOR_ART.md for methods and credits.
