@@ -72,8 +72,11 @@ Budget ~3.3 GB of disk per machine (venv + weights) and one 2.5 GB download.
   handles both (fixed 30 Oct).
 - bf16 on Apple MPS is unreliable, so `default_dtype` uses fp16 on MPS and bf16 on CUDA.
 - `HF_HUB_OFFLINE=1` makes a run fail loudly rather than silently download.
-- If a Hugging Face download stalls part-way (seen on this network: 2.2 GB of 2.5 GB, then 0 bytes/s, and
-  `hf_transfer` restarted from zero), resume the prefix instead of re-downloading: copy the `.incomplete` blob to
+- `HF_HUB_ENABLE_HF_TRANSFER` does nothing on huggingface_hub 2.x (the transport is Xet now, used automatically);
+  the working knob for faster transfers is `HF_XET_HIGH_PERFORMANCE=1`. Downloads without a token are also
+  rate-limited harder, so an `HF_TOKEN` in `.env` helps even for ungated repos.
+- If a Hugging Face download stalls part-way (seen on this network: 2.18 GB of 2.47 GB, then 0 bytes/s, twice),
+  resume the prefix instead of re-downloading: copy the `.incomplete` blob to
   `models/llama-3.2-1b-instruct/model.safetensors`, then
   `curl -L -C - --retry 30 --retry-all-errors --speed-limit 50000 --speed-time 20 -o <same path> <resolve url>`.
   Check `shasum -a 256` against the `lfs.sha256` in `https://huggingface.co/api/models/<repo>?blobs=true`, copy the
