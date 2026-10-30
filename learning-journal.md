@@ -111,3 +111,34 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
   new architecture isn't realistic, and reusing its code would clash with the hackathon's "new work only" rule.
 - **Takeaway**: architecture details (which layer types a model has) decide which interpretability or compilation
   tricks are even possible. Always check the architecture first.
+
+### Building the steering code (30 Oct, scaffold + steering core)
+- **uv**: a fast Python package and project manager. `pyproject.toml` lists what the project needs; `uv.lock` pins the
+  exact versions for every platform, so the Mac and Modal get the same libraries. `uv sync` builds `.venv` from them.
+  *Why it matters*: "works on my machine" bugs are expensive when you move to a rented GPU halfway through.
+  Source: https://docs.astral.sh/uv/
+- **PyTorch hooks**: functions you attach to a layer that run every time data passes through it. A *forward
+  pre-hook* runs just before the layer and can change its input; a *forward hook* runs after and sees the output.
+  We steer with a pre-hook on `down_proj`, so the model code itself is untouched. *Why it matters*: the same
+  ~10 lines steer Llama and Glimmer. Source: https://pytorch.org/docs/stable/generated/torch.nn.Module.html
+- **Context manager (`with` block)**: Python's way to say "set this up, and always tidy up afterwards". Our
+  `with steering(...)` adds the hooks and removes them at the end, even if something crashes. *Why it matters*: a
+  forgotten hook would silently steer every later experiment, including the "unsteered" baselines.
+- **Why push at the `down_proj` input, not the MLP output**: the input to `down_proj` *is* the list of neuron
+  activations, so adding to entry n is literally "turn neuron n up". Llama writes the MLP output straight into the
+  residual stream, so both places give the same result there. Glimmer (Gemma-style) normalises the MLP output
+  first, which would squash a push added after it. Pushing the activation goes through the same path as the
+  neuron's real signal.
+- **Dose maths**: the extra activation is `dose × median_norm / ‖W_down[:, n]‖`, so the MLP output moves by exactly
+  `dose × median_norm`. Different neurons have different-length output columns; dividing by the column length
+  makes doses comparable across neurons.
+- **Fair random controls**: a random mix of all neurons, rescaled so its MLP output moves by the *same* amount as
+  the neuron push. A control that's smaller or bigger wouldn't be a fair comparison.
+- **Attention sink**: models store a giant-norm vector at the first token (BOS) that attention uses as a "parking
+  spot". It's skipped when measuring typical residual size, or it would inflate the median.
+  Source: Xiao et al. 2023, "Efficient Streaming Language Models with Attention Sinks", https://arxiv.org/abs/2309.17453
+- **Greedy decoding**: always pick the most likely next token, so the same input always gives the same output.
+  *Why it matters*: any difference between a steered and unsteered run then comes from the steer, not from chance.
+- **Testing on a tiny random model**: the tests build a 3-layer Llama with random weights in memory. It writes
+  nonsense, but the maths of the hook (direction, size, sign, clean-up) can be checked in seconds with no download.
+

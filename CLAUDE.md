@@ -21,9 +21,10 @@
   (A100/H100 80GB). Mac Mini (16 GB) is available as a second machine.
 
 ## Next steps (in order)
-1. Python project scaffold (uv, Python 3.11+): torch, transformers, accelerate, numpy, openai (for the Meta API).
-2. Steering core: hook one MLP neuron at the **input to `down_proj`** (works for Llama and for Glimmer, whose
-   Gemma-style post-MLP norm breaks the "add to MLP output" shortcut). Doses in units of median residual norm.
+1. ~~Python project scaffold~~ (done 30 Oct): uv project, package `persona_atlas` in `src/`, tests in `tests/`.
+2. ~~Steering core~~ (done 30 Oct): `steering.py` (`neuron_steer`, `random_steer`, `steering()` context manager,
+   pre-hook on `down_proj` input), `calibrate.py` (`residual_norms`, median per layer, BOS skipped). Dose 1.0 =
+   MLP output shift equal to the layer's median residual norm. Random control is matched on output norm.
 3. First test on Llama 3.2 1B: "Who are you?" with one neuron at -0.7 / 0 / +0.5 / +0.8, plus a random-direction
    control. Milestone for Fri 30 Oct.
 4. KL "steer lens" screen over a layer → rollouts for top-KL neurons → Muse Spark labels vs random controls.
