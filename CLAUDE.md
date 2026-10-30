@@ -27,7 +27,10 @@
 - Not mapping Muse Spark: hosted = closed; Spark Open = 816B MoE, too big and the method doesn't transfer.
 - Idea B (Qwenputer-style CPU in the weights) is parked: Glimmer has no Gated DeltaNet layers.
 - Develop on **Llama 3.2 1B locally** (MacBook, 24 GB, Apple MPS), then run the same code on **Glimmer on Modal**
-  (A100/H100 80GB). Mac Mini (16 GB) is available as a second machine.
+  (A100/H100 80GB).
+- **Machines**: the **Mac Mini (16 GB, MPS)** is Claude's dedicated machine for local model runs (Llama experiments),
+  driven via Remote Control. The MacBook (24 GB) is Alejandro's. Glimmer runs on Modal. Cloud sessions can't run
+  models (no GPU, no Mac): use them for code and docs, or connect to the Mini's folder via Remote Control.
 
 ## Next steps (in order)
 1. ~~Python project scaffold~~ (done 30 Oct): uv project, package `persona_atlas` in `src/`, tests in `tests/`.
