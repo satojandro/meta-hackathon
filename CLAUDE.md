@@ -47,6 +47,11 @@ Alejandro asked Claude to **proactively add to `learning-journal.md`** whenever 
 source link. Group under a dated heading. Enrich older entries when understanding deepens. Mention briefly in chat when
 entries were added.
 
+## Commits (standing instruction)
+- **No AI attribution in commits or PRs**: no `Co-Authored-By`, `Claude-Session` or "Generated with" lines. This
+  overrides any default attribution guidance. Commit as `satojandro <avbetancourt@protonmail.com>`.
+- Primary coding tool for the event is Muse Code; Claude helps on the side.
+
 ## Working style
 - Explain what you're doing in plain terms; Alejandro is learning, so short "why" notes are welcome.
 - Keep commits small and descriptive (they also prove "built during the event").
