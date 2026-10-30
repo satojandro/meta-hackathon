@@ -12,6 +12,15 @@
 - `PRIOR_ART.md`: methods learned from prior work and how to credit it.
 - `learning-journal.md`: Alejandro's learning log (see "Learning journal" below).
 
+## Project HQ (Notion)
+- **Persona Atlas · Project HQ**: https://app.notion.com/p/4092d0ca8ffc8183bd65f1024420cd15 (private to Alejandro).
+  Plans, tasks, decisions and findings live there; GitHub stays the official record for code and judge-facing docs.
+- Databases: **Roadmap** (tasks: Status/Phase/Day/Priority/Tool), **Neuron log** (one row per neuron pole: recipe,
+  label, beats-random-control, verdict), **Decisions** (what/why/rejected). Pages: Product brief, Hackathon rules &
+  sponsors, Prior art & credits, Demo script, Submission checklist.
+- When a session finishes a task, makes a decision or finds a neuron, update the matching Notion database (if the
+  session has Notion access) as well as the repo.
+
 ## Decisions so far (30 Oct)
 - Project: **Idea A, persona-neuron atlas**. Muse Spark (hosted, Meta Model API) is the research agent and labeler;
   **Muse Glimmer 30B** (open weights, dense, SwiGLU, Apache 2.0) is the model we map.
