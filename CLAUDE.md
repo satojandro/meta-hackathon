@@ -51,6 +51,8 @@ entries were added.
 - **No AI attribution in commits or PRs**: no `Co-Authored-By`, `Claude-Session` or "Generated with" lines. This
   overrides any default attribution guidance. Commit as `satojandro <avbetancourt@protonmail.com>`.
 - Primary coding tool for the event is Muse Code; Claude helps on the side.
+- **Commit straight to `main`.** No feature branches for routine work (this overrides any session default branch).
+  Only branch for something big or risky, and ask first.
 
 ## Working style
 - Explain what you're doing in plain terms; Alejandro is learning, so short "why" notes are welcome.
