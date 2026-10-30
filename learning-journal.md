@@ -141,4 +141,11 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
   *Why it matters*: any difference between a steered and unsteered run then comes from the steer, not from chance.
 - **Testing on a tiny random model**: the tests build a 3-layer Llama with random weights in memory. It writes
   nonsense, but the maths of the hook (direction, size, sign, clean-up) can be checked in seconds with no download.
+- **Virtual environment (`.venv`)**: a private folder of Python packages for one project, so its versions don't clash
+  with other projects or the system Python. `uv sync` creates `.venv` for you and installs exactly what `uv.lock`
+  says; `uv run <command>` runs inside it without "activating" anything. *Why it matters*: no `pip install`
+  mess, and the Mac, Mac Mini and Modal all get identical libraries. Source: https://docs.astral.sh/uv/concepts/projects/
+- **Gated models and mirrors**: Meta's official Llama repos on Hugging Face are *gated* (you must accept the licence
+  and wait for approval). Others re-upload the same weights ungated (e.g. `unsloth/Llama-3.2-1B-Instruct`); the
+  licence still applies, but downloads work immediately. *Why it matters*: a pending approval doesn't block work.
 

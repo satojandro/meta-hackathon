@@ -54,8 +54,8 @@ characters by turning neuron dials instead of writing prompts.
   Spark agent labels them against random-direction controls.
 - **Mon–Tue**: atlas web app + persona mixer.
 - **Wed**: record demo. **Thu 5 Nov 1 PM Sydney**: submit.
-- **Future work (dropped 30 Oct)**: train a persona LoRA on Glimmer (Fireworks, free until 30 Nov), re-map, and see
-  which neurons the fine-tune uses. A different approach; not needed for the submission.
+- **Bonus (far-fetched, only if time)**: train a persona LoRA on Glimmer (Fireworks, free until 30 Nov), re-map, and see
+  which neurons the fine-tune uses. A different approach; not needed for the submission, and also listed as future work.
 
 ## Sponsor usage
 | Sponsor | Use |

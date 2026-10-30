@@ -22,9 +22,13 @@ def default_dtype(device: str) -> torch.dtype:
     return {"cuda": torch.bfloat16, "mps": torch.float16}.get(device, torch.float32)
 
 
-def load_model(model_id: str = DEV_MODEL, device: str | None = None, dtype: torch.dtype | None = None):
-    """Return (model, tokenizer), in eval mode with gradients off: we only ever run forward passes."""
+def load_model(model_id: str | None = None, device: str | None = None, dtype: torch.dtype | None = None):
+    """Return (model, tokenizer), in eval mode with gradients off: we only ever run forward passes.
+
+    With no model_id, uses MODEL_ID from .env, else DEV_MODEL.
+    """
     load_dotenv()
+    model_id = model_id or os.environ.get("MODEL_ID") or DEV_MODEL
     device = device or pick_device()
     dtype = dtype or default_dtype(device)
     token = os.environ.get("HF_TOKEN") or None
