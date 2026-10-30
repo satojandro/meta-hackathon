@@ -33,16 +33,21 @@ def load_model(model_id: str | None = None, device: str | None = None, dtype: to
     dtype = dtype or default_dtype(device)
     token = os.environ.get("HF_TOKEN") or None
     tok = AutoTokenizer.from_pretrained(model_id, token=token)
-    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=dtype, token=token).to(device)
+    model = AutoModelForCausalLM.from_pretrained(model_id, dtype=dtype, token=token).to(device)
     model.eval()
     model.requires_grad_(False)
     return model, tok
 
 
 def chat_ids(tok, user_msg: str) -> torch.Tensor:
-    """Wrap a user message in the model's chat template, ready for generation."""
+    """Wrap a user message in the model's chat template, ready for generation.
+
+    Returns just the input ids. transformers >= 5 returns a BatchEncoding here (input_ids plus an
+    attention mask); older versions and some tokenizers return the tensor itself.
+    """
     messages = [{"role": "user", "content": user_msg}]
-    return tok.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt")
+    ids = tok.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt")
+    return ids["input_ids"] if hasattr(ids, "keys") else ids
 
 
 @torch.no_grad()
