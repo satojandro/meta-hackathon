@@ -149,3 +149,38 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
   and wait for approval). Others re-upload the same weights ungated (e.g. `unsloth/Llama-3.2-1B-Instruct`); the
   licence still applies, but downloads work immediately. *Why it matters*: a pending approval doesn't block work.
 
+### First real steering run on Llama 3.2 1B (30 Oct)
+
+> **Draft written by Hermes, not by Alejandro.** Findings from the first verified run on the Mac Mini
+> (`scripts/smoke.py`, Llama 3.2 1B Instruct, MPS fp16, layer 8 of 16). Edit, reword or delete freely — this is
+> here to be reviewed, not adopted.
+
+- **Dose is measured in the model's own units, so it does not transfer.** Median residual norm on Llama 3.2 1B runs
+  L0 0.9 → L8 4.8 → L15 12.5. On Qwen 1.5B the same statistic was around 55.7. A dose of 0.8 is therefore a
+  completely different physical push in each model. *Why it matters*: the "0.5–0.8 is coherent" number in the prior
+  art is Qwen-specific; recalibrate per model and per layer before comparing anything.
+- **A random direction can change the answer more than a real neuron does.** The unsteered model says "I'm an
+  artificial intelligence model known as Llama". A size-matched random push at +0.8 produced "I'm this
+  conversation." — more degenerate than any of the six single-neuron pushes, which all stayed grammatical. *Why it
+  matters*: this reproduces the prior-art warning on a Meta model. "The output changed" is not evidence. A neuron
+  only counts if it produces the *same theme across several unrelated prompts* and the controls do not.
+- **The coherent window on Llama 1B extends past 0.8.** All six neuron pushes at ±0.8 stayed on topic, unlike Qwen
+  at the same nominal dose. So the sweep should test 1.0–1.5 to find where it actually breaks rather than inheriting
+  a window from another model.
+- **One candidate pole worth following up (not a finding yet).** L8 N2048 at −0.8 turned "an AI model known as
+  Llama" into "a conversation partner". One prompt is not evidence — the test is whether it holds across unrelated
+  prompts while the random controls do not.
+- **`transformers` 5 returns a `BatchEncoding` from `apply_chat_template`.** Not a bare tensor, which is what the
+  code assumed, so generation died on `torch.ones_like(ids)` at the first call. *Why it matters*: a library major
+  version can break the very first thing you do, and the tests on a random model did not cover it — the failure only
+  appeared against real weights.
+- **fp16 on Apple MPS, bf16 on CUDA.** bf16 support on MPS is still unreliable, so the loader picks per device.
+- **Xet is the Hugging Face transport now; `hf_transfer` is dead.** `HF_HUB_ENABLE_HF_TRANSFER` only produces a
+  deprecation warning — the library no longer uses that package at all. The working knob is
+  `HF_XET_HIGH_PERFORMANCE=1`. Downloads without a token also get harder rate limits, which is the likely reason a
+  2.47 GB download died twice at 0 bytes/s here. *Why it matters*: reach for the token, not a different library.
+- **A stalled download is resumable, and resumable is verifiable.** Reusing the `.incomplete` prefix with
+  `curl -L -C -` finished the last 287 MB at ~5.3 MB/s, and the sha256 then matched `lfs.sha256` from
+  `https://huggingface.co/api/models/<repo>?blobs=true` exactly. *Why it matters*: never trust an interrupted file
+  until the hash says it is whole.
+
