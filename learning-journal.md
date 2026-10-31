@@ -217,3 +217,22 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
   Muse Spark's labels decide.
 - **Compute KL in float32**: in fp16 tiny probabilities round to 0 and log(0) blows up. Cast logits to float32
   before log-softmax.
+
+### Building the KL screen (31 Oct)
+- **The teacher-forcing off-by-one**: position *i* predicts token *i+1*. To score the 12 answer tokens we feed
+  prompt + the answer *minus its last token*; then the last 12 positions are exactly the 12 predictions we want.
+  *Why it matters*: an off-by-one here silently compares the wrong predictions and still produces plausible numbers.
+- **`logits_to_keep`**: a `transformers` option that only runs the final vocab projection for the last N positions.
+  Full logits for 128 rows x ~50 positions x 128k vocab is ~1.6 GB in fp16; keeping 12 positions cuts that by 4x.
+  *Why it matters*: on a 16 GB Mini, the logits are the biggest thing in memory, not the model.
+  Source: https://huggingface.co/docs/transformers/main_classes/text_generation
+- **Timing on a GPU needs a sync**: GPU calls (CUDA and Apple MPS) return before the work is done; they just queue
+  it. Without `torch.mps.synchronize()` a timer measures the queueing, not the work. *Why it matters*: the screen
+  prints an ETA after the first batch, and a wrong ETA means a wrong decision about launching a full layer.
+- **The 3-of-5 rule is stricter than 1%**: one random push beats the 99th percentile on a single prompt 1% of the
+  time, but on 3 of 5 prompts much less often (the prompts aren't independent, so not quite 0.001%, but well under
+  1%). So the right "is this chance?" comparison is how many *random* controls pass the same rule, which the screen
+  also records (rows with `kind = "random"` in the parquet).
+- **Parquet**: a compact, column-based file format for tables. Pandas reads it in one line
+  (`pd.read_parquet(path)`), it keeps types (numbers stay numbers), and it is much smaller than CSV.
+  *Why it matters*: one row per neuron pole x 8,192 neurons x 16 layers adds up; the atlas app will read these files.
