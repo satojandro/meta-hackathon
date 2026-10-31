@@ -236,3 +236,25 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
 - **Parquet**: a compact, column-based file format for tables. Pandas reads it in one line
   (`pd.read_parquet(path)`), it keeps types (numbers stay numbers), and it is much smaller than CSV.
   *Why it matters*: one row per neuron pole x 8,192 neurons x 16 layers adds up; the atlas app will read these files.
+
+### Reading the L4 results; thinking traces and SAEs (31 Oct)
+- **Concept neuron**: a neuron whose push raises the same themed words whatever the prompt (L4 N7531+ pushes
+  "western, ranch, Texas" on all 5 identity prompts). *Why it matters*: one consistent theme across unrelated prompts
+  is what separates a real concept from a neuron that just breaks the text.
+- **Risers vs rollouts**: risers are the tokens a push makes more likely at the teacher-forced answer positions;
+  a rollout is the text the steered model actually generates. *Why it matters*: risers are a cheap screen, but a
+  theme only counts once the rollouts show it.
+- **Thinking traces (chain of thought)**: the visible "reasoning" text some models write before answering. It is
+  output, produced by the same forward passes as any other text, so it is a *report*, not a window into the
+  computation. Research shows traces are often unfaithful (the model's stated reason isn't what drove the answer).
+  Activations and neurons are the computation itself. *Why it matters*: steering a neuron and watching whether the
+  trace mentions it is a direct test of faithfulness and of "can reasoning override a push".
+  Source: https://www.anthropic.com/research/reasoning-models-dont-say-think
+- **Superposition**: models store more concepts than they have neurons by overlapping them, so one neuron mixes
+  several unrelated things ("polysemantic"). *Why it matters*: it is why many of our hits look like noise and why
+  N7984+ mixes "AI" with "dog". Source: https://transformer-circuits.pub/2022/toy_model/index.html
+- **Sparse autoencoder (SAE)**: a small extra network trained to rewrite a layer's activations as a combination of
+  many more "features" (e.g. 8k neurons -> 65k features), with a penalty so only a few are on at once. Each feature
+  tends to mean one thing (Golden Gate Bridge, code errors, flattery). *Why it matters*: SAEs untangle superposition,
+  but training one costs GPU hours per layer; we steer raw neurons instead because it needs no training and fits the
+  week. Source: https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html
