@@ -1,12 +1,15 @@
 """Checks for the batched KL screen, on the same tiny random Llama as test_steering.py."""
 
+import copy
+
 import numpy as np
 import pytest
 import torch
 from transformers import LlamaConfig, LlamaForCausalLM
 
 from persona_atlas.screen import (
-    Baseline, batched_steering, kl_batch, neuron_vectors, random_vectors, score_poles,
+    PROMPT_SETS, Baseline, batched_steering, default_min_prompts, kl_batch, neuron_percentile, neuron_vectors,
+    random_vectors, score_poles,
 )
 from persona_atlas.steering import down_proj, neuron_steer, random_steer, steering
 
@@ -65,6 +68,38 @@ def test_kl_matches_a_by_hand_computation_and_grows_with_dose(model, base):
     assert np.isclose(res.max_kl[1], kl.max().item(), rtol=1e-4)
     assert res.mean_kl[1] > res.mean_kl[0] > 0
     assert res.risers.shape == (2, 3)
+    assert np.isclose(res.top_mass[1], logp.exp().mean(0).max().item(), rtol=1e-4)
+
+
+def test_top_mass_flags_collapse_onto_one_token(model, base):
+    """A push that drives the model to the same token at every position gives top_mass near 1.
+
+    A random tiny model's logits are too flat to collapse, so wire one in: neuron 7 writes token 5's unembedding
+    direction, and a sharper lm_head turns that into a confident prediction.
+    """
+    m = copy.deepcopy(model)
+    with torch.no_grad():
+        m.lm_head.weight.mul_(50)
+        down_proj(m, LAYER).weight[:, 7] = m.lm_head.weight[5]
+        logits = m(base.input_ids, logits_to_keep=N_ANSWER).logits[0]
+    b = Baseline("test", base.input_ids, base.answer_ids, torch.log_softmax(logits.float(), dim=-1))
+    vecs = torch.cat([torch.zeros(1, 256), neuron_vectors(m, LAYER, [7], 50.0, 10.0)])
+    res = kl_batch(m, b, LAYER, vecs)
+    assert res.top_mass[0] < 0.5 < res.top_mass[1] <= 1.0
+
+
+def test_neuron_percentile_ranks_by_median_kl():
+    kl = np.array([[1.0, 1, 1], [5, 5, 5], [3, 3, 3], [0, 9, 9]])  # medians 1, 5, 3, 9
+    pct = neuron_percentile(kl)
+    assert pct.argsort().tolist() == [0, 2, 1, 3]
+    assert 0 < pct.min() < pct.max() < 100
+
+
+def test_prompt_sets_and_default_bar():
+    assert default_min_prompts(5) == 3 and default_min_prompts(8) == 5
+    assert len(PROMPT_SETS["identity"]) == 5
+    fams = {f for _, f in PROMPT_SETS["broad"]}
+    assert fams == {"identity", "open", "task", "opinion"} and len(PROMPT_SETS["broad"]) == 8
 
 
 def test_hit_rule_needs_three_of_five_prompts():

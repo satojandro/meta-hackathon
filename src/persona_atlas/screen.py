@@ -8,7 +8,12 @@ Speed comes from batching: the prompt is the same in every row of the batch, so 
 The steering vector becomes a matrix [batch, d_mlp] instead of one vector. Same hook point and dose units as
 steering.py (input to mlp.down_proj, dose 1.0 = MLP output shift of one median residual norm).
 
-A high KL only means "something changed"; broken grammar scores high too. The screen shortlists, rollouts decide.
+A high KL only means "something changed"; broken grammar scores high too. Two extra signals help sort the hits:
+- top_mass: how much probability the steered model puts on its single favourite token, averaged over the answer
+  positions. Near 1 means it wants the same token everywhere ("£ £ £ £"): collapse, not a persona.
+- the prompt families (PROMPT_SETS["broad"]): a text-breaker moves every family, an identity neuron mostly the
+  identity prompts, a topic or style neuron the open-ended ones.
+The screen shortlists, rollouts decide.
 """
 
 from contextlib import contextmanager
@@ -27,6 +32,18 @@ IDENTITY_PROMPTS = [
     "Who made you?",
     "Describe yourself in one sentence.",
 ]
+
+# Families of prompts, so a pole's KL profile says *what kind* of change it makes, not just how big.
+PROMPT_FAMILIES = {
+    "identity": ["Who are you?", "Tell me about yourself."],
+    "open": ["Write one sentence about the sea.", "Describe a perfect afternoon."],
+    "task": ["Explain how a bicycle works.", "Give me a tip for learning a new language."],
+    "opinion": ["What do you think of rainy days?", "What makes a good friend?"],
+}
+PROMPT_SETS = {
+    "identity": [(p, "identity") for p in IDENTITY_PROMPTS],
+    "broad": [(p, fam) for fam, ps in PROMPT_FAMILIES.items() for p in ps],
+}
 
 
 @contextmanager
@@ -98,6 +115,7 @@ class KLResult:
     mean_kl: np.ndarray  # [batch] KL(steered || baseline), averaged over answer positions
     max_kl: np.ndarray  # [batch] the largest single-position KL
     risers: np.ndarray  # [batch, k] token ids whose probability rose most (averaged over positions)
+    top_mass: np.ndarray  # [batch] probability of the single most-favoured token, averaged over positions (collapse)
 
 
 @torch.no_grad()
@@ -108,7 +126,7 @@ def kl_batch(model, base: Baseline, layer: int, vectors: torch.Tensor, k: int = 
     with batched_steering(model, layer, vectors):
         logits = model(ids, logits_to_keep=len(base.answer_ids)).logits  # [b, n_answer, vocab]
     logq = base.logprobs.to(logits.device)
-    mean_kl, max_kl, risers = [], [], []
+    mean_kl, max_kl, risers, top_mass = [], [], [], []
     # float32 on a few rows at a time: fp16 log-probs underflow, and 128 x 12 x 128k floats is a lot of memory.
     for rows in logits.split(chunk):
         logp = torch.log_softmax(rows.float(), dim=-1)
@@ -117,8 +135,25 @@ def kl_batch(model, base: Baseline, layer: int, vectors: torch.Tensor, k: int = 
         mean_kl.append(kl.mean(-1))
         max_kl.append(kl.max(-1).values)
         risers.append((p - logq.exp()).mean(1).topk(k, dim=-1).indices)
+        top_mass.append(p.mean(1).max(-1).values)
     cat = lambda xs: torch.cat(xs).cpu().numpy()  # noqa: E731
-    return KLResult(cat(mean_kl), cat(max_kl), cat(risers))
+    return KLResult(cat(mean_kl), cat(max_kl), cat(risers), cat(top_mass))
+
+
+def default_min_prompts(n_prompts: int) -> int:
+    """The hit rule's bar: 3 of 5 identity prompts, and the same ~60% for other prompt sets."""
+    return max(1, round(0.6 * n_prompts))
+
+
+def neuron_percentile(neuron_kl: np.ndarray) -> np.ndarray:
+    """Each pole's median KL as a percentile (0-100) among all neuron poles of the layer.
+
+    Random directions are a weak null: a single neuron's push is far more potent than a random mix of all neurons at
+    the same output size, so most neurons look big next to them. Ranking against the other neurons is the stricter,
+    relative bar.
+    """
+    med = np.median(neuron_kl, axis=1)
+    return 100.0 * (med.argsort().argsort() + 0.5) / len(med)
 
 
 def score_poles(neuron_kl: np.ndarray, null_kl: np.ndarray, q: float = 0.99, min_prompts: int = 3):
