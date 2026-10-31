@@ -31,6 +31,10 @@
 - **Machines**: the **Mac Mini (16 GB, MPS)** is Claude's dedicated machine for local model runs (Llama experiments),
   driven via Remote Control. The MacBook (24 GB) is Alejandro's. Glimmer runs on Modal. Cloud sessions can't run
   models (no GPU, no Mac): use them for code and docs, or connect to the Mini's folder via Remote Control.
+- **Reaching the Mini from a cloud session** (verified 31 Oct): on the Mini, run `claude remote-control` from
+  `~/projects/meta-hackathon` (the real path, not the `~/meta-hackathon` symlink). It shows up as a bridge
+  environment `Claudios-Mac-mini:meta-hackathon` (`list_environments`); start work there with `create_session`.
+  **Always start Mini sessions with `permission_mode: "auto"`.**
 
 ## Next steps (in order)
 1. ~~Python project scaffold~~ (done 30 Oct): uv project, package `persona_atlas` in `src/`, tests in `tests/`.
