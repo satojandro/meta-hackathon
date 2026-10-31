@@ -82,7 +82,7 @@ def main() -> int:
                 if done == 1 or done % 20 == 0 or done == n_batches:
                     sync(model.device)
                     per = (time.perf_counter() - t0) / done
-                    print(f"  {label}: batch {done}/{n_batches}  {per:.2f}s/batch  ~{per * (n_batches - done) / 60:.1f} min left")
+                    print(f"  {label}: batch {done}/{n_batches}  {per:.2f}s/batch  ~{per * (n_batches - done) / 60:.1f} min left", flush=True)
         return mean_kl, max_kl, risers
 
     print(f"\nrandom null: {args.n_random} size-matched directions")
