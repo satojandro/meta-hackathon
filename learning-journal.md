@@ -280,3 +280,27 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
 - **Blind controls for an LLM labeler**: mixing random-direction rollouts into the labeler's queue without telling it
   which are which measures how often it "finds" a theme in noise. *Why it matters*: that false-positive rate is the
   honest error bar on every label in the atlas.
+
+### First labeled batch: L8 rollouts + blind Muse Spark labels (1 Nov)
+- **The pipeline**: shortlist the top 10% of neuron poles within any prompt family (2,892 at L8), generate greedy
+  answers at two push strengths on 10 prompts (8 screen + 2 held-out), drop collapsed / unchanged / word-salad
+  answers, then have Muse Spark label each pole blind, with random-direction controls mixed in. 57,840 rollouts and
+  408 labels. *Why it matters*: this is the first number we can defend: **22% of real neuron poles show a consistent,
+  fluent theme vs 4% of random directions (2 of 53)**.
+- **Show the labeler a dose ladder**: giving Spark the normal answer, a light push and a strong push side by side
+  fixed a calibration problem. One push alone made it either find themes in noise or dismiss real ones; a real effect
+  grows with the dose and random drift doesn't. *Why it matters*: cheap trick, big gain in label honesty.
+- **A ranking can work against you**: we sent the 250 "most novel" poles plus a random sample of 100 others. The
+  random sample had a theme 46% of the time, the top-ranked only 12% (high surprise mostly meant broken text).
+  *Why it matters*: always label a random sample alongside any ranked list, or you never learn what you missed.
+  Here it suggests ~1,200 themed poles remain unlabeled at L8.
+- **Memory leak on Apple MPS**: batched generation grew the GPU cache to 10 GB and pushed the Mini into swap
+  (18 s → 150 s per batch). `torch.mps.empty_cache()` after each batch and a checkpoint per prompt fixed it.
+  *Why it matters*: long jobs on a shared 16 GB machine need both, or one leak costs hours.
+- **What turned up** (Spark labels, not yet human-checked): human-identity neurons (N2048− human life story, now
+  confirmed; N5040− "I was a 7-year-old child in 2023"; N7243− "a former AI, a ghost from the past"), personas
+  (N1140− grandmotherly "Mamaw", N762− renowned scientist, N5370+ Australian government product), tones
+  (N7776+ sycophantic agreement, N4490− everything is pointless, N7485− obsessive affection, N4444+ marketing hype),
+  odd concepts (N6567+ fingers and pointing, N1049− dice and lotteries), a values cluster (activism, colonialism,
+  anti-discrimination: research note only, no politics in the demo) and safety-relevant ones (N4366+ graphic
+  violence, N871+ hostility) that we report but never expose as dials.
