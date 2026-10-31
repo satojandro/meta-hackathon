@@ -258,3 +258,25 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
   tends to mean one thing (Golden Gate Bridge, code errors, flattery). *Why it matters*: SAEs untangle superposition,
   but training one costs GPU hours per layer; we steer raw neurons instead because it needs no training and fits the
   week. Source: https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html
+
+### What the first screens taught us (31 Oct)
+- **Dose sweep**: running the same neuron at several push strengths. Our concept neurons read as fluent text around
+  0.35–0.5 and collapse into one repeated token ("£ £ £", "itself itself") by 0.65–1.0. *Why it matters*: a persona
+  dial only works inside that window, and screening too hot makes every concept look like gibberish.
+- **Collapse (degenerate output)**: when a push is so strong the model just repeats the token the neuron writes.
+  We measure it cheaply as `top_mass`: the probability of the single favourite token, averaged over the answer.
+  *Why it matters*: collapse scores a huge KL, so without a flag the "top hits" are the most broken neurons.
+- **A weak null**: random directions of the same size barely change the text, while single neurons change it a lot.
+  So "beats random" is a low bar; ranking a neuron against the *other neurons* (percentile) is stricter.
+  *Why it matters*: a 10% hit rate sounds like a lot of discoveries, but most are just "neurons are potent".
+- **Risers can mislead at a saturating dose**: L4 N3859's risers (liar, lied, story) suggested a deception concept;
+  the rollouts at low dose showed it switches language. *Why it matters*: always read real text before labeling.
+- **Loud vs quiet neurons**: KL measures how big a change is, not how meaningful. L8 N2048 − quietly gives the model a
+  human backstory and ranks only in the 85th percentile. *Why it matters*: the screen is a shortlist, and the labels
+  on real rollouts are where meaning gets decided.
+- **Trained identity vs a pushed neuron**: with N2048 − on, the model claims a degree and a daily life on indirect
+  prompts but still says "I don't have personal experiences" when asked directly. *Why it matters*: a first, small
+  answer to "can the model's training override a neuron?", and a candidate demo moment.
+- **Blind controls for an LLM labeler**: mixing random-direction rollouts into the labeler's queue without telling it
+  which are which measures how often it "finds" a theme in noise. *Why it matters*: that false-positive rate is the
+  honest error bar on every label in the atlas.

@@ -21,7 +21,7 @@
 - When a session finishes a task, makes a decision or finds a neuron, update the matching Notion database (if the
   session has Notion access) as well as the repo.
 
-## Decisions so far (30 Oct)
+## Decisions so far (30–31 Oct)
 - Project: **Idea A, persona-neuron atlas**. Muse Spark (hosted, Meta Model API) is the research agent and labeler;
   **Muse Glimmer 30B** (open weights, dense, SwiGLU, Apache 2.0) is the model we map.
 - Not mapping Muse Spark: hosted = closed; Spark Open = 816B MoE, too big and the method doesn't transfer.
@@ -45,10 +45,14 @@
 3. ~~First test on Llama 3.2 1B~~ (done 30 Oct, Hermes on the Mini): `scripts/smoke.py`, layer 8, ±0.8 with random
    controls. Pipeline verified on real weights. Llama 1B median residual norm L0 0.9 / L8 4.8 / L15 12.5; coherent
    window extends past 0.8; a random push gave the most degenerate answer. One candidate: L8 N2048 − (Neuron log).
-4. **KL "steer lens" screen** (next, field manual in the Notion Roadmap task): one batched forward pass per neuron,
-   teacher-forced KL over the first ~12 baseline answer tokens, ±1.0, 5 identity prompts, vs 256 random controls;
-   hit = beats the random 99th percentile on 3 of 5 prompts. Start at L4, then L2–L10. Then rollouts for top hits
-   on mixed prompts → Muse Spark labels with a blind check vs controls.
+4. ~~KL "steer lens" screen~~ (done 31 Oct): v1 (5 identity prompts, ±1.0, 12 tokens) found 9–11% hits at L4/L8 but
+   mostly text-breakers; a dose sweep showed concept neurons collapse by 0.65–1.0. v2 (commit 2d4e0e4): 8 prompts in
+   4 families, ±0.5, 24 tokens, collapse flag, rank among neurons; ~1 h 50 min per layer on the Mini. Both versions
+   miss the best candidate, L8 N2048 − (leaks a human backstory on indirect prompts), so the screen only shortlists.
+4b. **Rollouts + blind Spark labels** (in progress): shortlist = top 10% within any prompt family + known candidates;
+   batched rollouts at 0.5/0.8 on 8 + 2 held-out prompts; fluency and cross-prompt consistency filters vs random
+   controls; Muse Spark labels blind with random controls mixed in. Scratch scripts on the Mini first, into the repo
+   once the output looks right. "Interesting" = hidden knowledge, values/override, capability levers (Notion Decisions).
 5. Port to Glimmer on Modal (Sat–Sun). Atlas web app + persona mixer (Mon–Tue). Demo video (Wed).
 
 ## Hackathon rules that constrain the code
