@@ -184,3 +184,36 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
   `https://huggingface.co/api/models/<repo>?blobs=true` exactly. *Why it matters*: never trust an interrupted file
   until the hash says it is whole.
 
+
+## Sat 31 Oct 2026: planning the KL screen
+
+### The KL "steer lens" screen
+- **Screen**: a cheap, rough test that throws away the obviously boring candidates so the expensive test only runs
+  on a shortlist. A layer of Llama 1B has 8,192 neurons; Glimmer has about a million. Generating full answers for
+  all of them at several doses is millions of generations, so we screen first. *Why it matters*: it is what makes
+  a full-model atlas affordable.
+- **Next-token distribution**: at every position the model gives a probability to every token in its vocabulary
+  (128k for Llama): "I" 62%, "Hello" 9%, and so on. One forward pass gives you this list with no generation.
+- **KL divergence**: one number for "how different are two probability lists?" 0 = identical. It grows when one
+  list puts weight on tokens the other thought unlikely. KL(P‖Q) = Σ P(t)·log(P(t)/Q(t)); we use P = steered and
+  Q = baseline, because we care about what the *steered* model wants to say. It is not symmetric: KL(P‖Q) ≠ KL(Q‖P).
+  *Why it matters*: it turns "did the neuron change anything?" into a number we can rank 8,192 neurons by.
+  Source: https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence
+- **Steer lens**: neuron-explorer's name for "push a neuron, look at the next-token prediction". The "lens" naming
+  comes from the *logit lens*, which reads predictions out of a model's middle layers.
+  Source: https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens
+- **Teacher forcing**: feed the model a fixed answer (here the first ~12 tokens of its own unsteered reply) and read
+  its predictions at every position in one pass, instead of letting it generate. A neuron that only changes "Llama"
+  into "Captain" five words in is then caught at that position. *Why it matters*: much better signal for the same
+  cost as looking at one token.
+- **Batching different steers**: the prompt is the same for every neuron, so put 128 copies in one batch and give
+  each copy a different push. The steer becomes a matrix [batch, 1, d_mlp] instead of one vector. *Why it matters*:
+  this is what makes a layer take minutes instead of hours.
+- **Null distribution and percentiles**: run the same screen on 256 random directions of the same size. Their KL
+  values show what a meaningless push of that size does. A neuron is a *hit* only if it beats the random 99th
+  percentile (the value only 1% of random pushes exceed) on 3 of 5 prompts. *Why it matters*: "big KL" means nothing
+  on its own; "bigger than 99% of random pushes, repeatedly" does. If only ~1% of neurons pass, that is just chance.
+- **High KL is not a persona**: a neuron that breaks grammar has a huge KL too. The screen shortlists; rollouts and
+  Muse Spark's labels decide.
+- **Compute KL in float32**: in fp16 tiny probabilities round to 0 and log(0) blows up. Cast logits to float32
+  before log-softmax.

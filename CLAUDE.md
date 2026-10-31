@@ -37,9 +37,13 @@
 2. ~~Steering core~~ (done 30 Oct): `steering.py` (`neuron_steer`, `random_steer`, `steering()` context manager,
    pre-hook on `down_proj` input), `calibrate.py` (`residual_norms`, median per layer, BOS skipped). Dose 1.0 =
    MLP output shift equal to the layer's median residual norm. Random control is matched on output norm.
-3. First test on Llama 3.2 1B: "Who are you?" with one neuron at -0.7 / 0 / +0.5 / +0.8, plus a random-direction
-   control. Milestone for Fri 30 Oct.
-4. KL "steer lens" screen over a layer → rollouts for top-KL neurons → Muse Spark labels vs random controls.
+3. ~~First test on Llama 3.2 1B~~ (done 30 Oct, Hermes on the Mini): `scripts/smoke.py`, layer 8, ±0.8 with random
+   controls. Pipeline verified on real weights. Llama 1B median residual norm L0 0.9 / L8 4.8 / L15 12.5; coherent
+   window extends past 0.8; a random push gave the most degenerate answer. One candidate: L8 N2048 − (Neuron log).
+4. **KL "steer lens" screen** (next, field manual in the Notion Roadmap task): one batched forward pass per neuron,
+   teacher-forced KL over the first ~12 baseline answer tokens, ±1.0, 5 identity prompts, vs 256 random controls;
+   hit = beats the random 99th percentile on 3 of 5 prompts. Start at L4, then L2–L10. Then rollouts for top hits
+   on mixed prompts → Muse Spark labels with a blind check vs controls.
 5. Port to Glimmer on Modal (Sat–Sun). Atlas web app + persona mixer (Mon–Tue). Demo video (Wed).
 
 ## Hackathon rules that constrain the code
