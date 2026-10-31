@@ -34,7 +34,8 @@
 - **Reaching the Mini from a cloud session** (verified 31 Oct): on the Mini, run `claude remote-control` from
   `~/projects/meta-hackathon` (the real path, not the `~/meta-hackathon` symlink). It shows up as a bridge
   environment `Claudios-Mac-mini:meta-hackathon` (`list_environments`); start work there with `create_session`.
-  **Always start Mini sessions with `permission_mode: "auto"`.**
+  **Always start Mini sessions with `permission_mode: "auto"`.** This only works if the cloud session starting it is itself
+  in Auto mode (a child can't be looser than its parent); if not, ask Alejandro to switch it first.
 
 ## Next steps (in order)
 1. ~~Python project scaffold~~ (done 30 Oct): uv project, package `persona_atlas` in `src/`, tests in `tests/`.
