@@ -51,3 +51,29 @@ Ideas we may borrow (written fresh, credited):
 34,220 Qwen poles whose push on "Who are you?" made the model claim a persona, named by Claude Haiku. The closest
 existing thing to our atlas. neuron-lens judged it: ~34% of rows clearly match the neuron's lens reads (control 3–6%).
 Our differences: several prompt families instead of one, random-direction controls, blind labels, and a Meta model.
+
+## balaena01/gguf-neuron-explorer (`gne`; llama.cpp / GGUF; Qwen3, Qwen3.5, LFM3, SmolLM2)
+https://github.com/balaena01/gguf-neuron-explorer
+A from-scratch reimplementation of lyramakesmusic/neuron-explorer for quantized GGUF models, grown into a persona
+*builder*: sweeps with random controls, logit-lens and steer-lens screens, reverse lookup from a persona contrast set,
+recipes exported as llama.cpp control vectors / LoRA, attention-head and MoE-expert levers, and a side-effect eval.
+Ideas we may borrow (written fresh, credited):
+- **Personas need many neurons**: one neuron gave fragments; they split a persona into parts (jealousy, cuteness…),
+  found a few neurons per part, then tuned ~26 signed doses with a (1+λ) evolution strategy.
+- **Score min(persona, fluency)**, not the persona score alone (which picks broken text). Blind Claude judging beat
+  the model judging itself.
+- **Scheduled pushes (`when`)**: push only generated tokens, or ramp the dose up during generation; `ramp:0.5-1.5`
+  kept capability loss at 0 points where pushing everywhere cost 8.3.
+- **Side-effect eval with random controls**: exact-answer tasks + perplexity at each dose, next to random recipes of
+  the same size, marking "shippable" doses.
+- **Export as a control vector** so a stock runtime can load the recipe.
+- Their deep-layer finding (usable part-word neurons at 55–80% depth; shallow ones broke prompt reading) differs from
+  our L4–L8 persona levers on Llama 1B. Worth checking on Glimmer.
+
+## NapoleonPK/neuron-explorer-gemma (port of lyramakesmusic/neuron-explorer to Gemma 4 E2B/E4B, Gemma 3 4B)
+https://github.com/NapoleonPK/neuron-explorer-gemma
+A thin port: not yet run on real weights. Useful lesson: with a `post_feedforward_layernorm`, a neuron's `down_proj`
+column isn't the direction it writes; steer after the norm along `s ⊙ W_down[:, n]`, and divide by any per-layer
+output scalar. **Muse Glimmer has the same post-FFN norm** (see CLAUDE.md step 5). Its notes also point to Sauers'
+128-neuron tawny-owl persona in Qwen3-8B (zeroing them drops "I am an AI" replies 80% → 30%, random-128 control 77–82%)
+and Goodfire's "Neural Networks Are Already Clean".

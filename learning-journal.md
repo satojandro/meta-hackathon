@@ -348,3 +348,21 @@ Source: https://github.com/stdlogits/neuron-lens (catalog of every MLP neuron an
 - **Dark neurons**: 57% of Qwen3-8B poles fire but pass no token-level test, and they make up 82% of layers 13–20.
   *Why it matters*: the middle of the network is the hardest to read from any side, which fits our finding that
   persona levers cluster earlier.
+
+### Two more neuron explorers (1 Nov)
+Sources: https://github.com/balaena01/gguf-neuron-explorer, https://github.com/NapoleonPK/neuron-explorer-gemma
+- **Sandwich norms (post-FFN norm)**: some models (Gemma, and Muse Glimmer) normalise the MLP's output again before
+  adding it to the residual stream. So if you push a neuron *inside* the MLP, the norm rescales your push and your
+  dose no longer means what you think. Push *after* that norm instead, along the neuron's real write direction (its
+  `down_proj` column times the norm's weights). *Why it matters*: our Llama steering code would silently mis-dose on
+  Glimmer; found by reading Glimmer's weight names before the port, not after.
+- **Control vector**: a single extra vector per layer that a runtime like llama.cpp adds to the residual stream
+  (`--control-vector`). *Why it matters*: a way to ship a persona recipe so others can use it with stock tools.
+- **Evolution strategy for doses**: keep a parent set of doses, try a few random tweaks, keep a tweak only if it
+  beats the parent on fresh seeds; repeat. *Why it matters*: combining many neurons needs doses tuned together, and a
+  grid search explodes; this is the simplest search that works.
+- **Score the weaker of two scores**: rate each reply on persona and on fluency, and optimise min(persona, fluency).
+  *Why it matters*: optimising persona alone rewards broken text that happens to mention the right words.
+- **Dose schedules**: push only on generated tokens, or ramp the dose from half strength (while the model reads the
+  prompt) up during generation. *Why it matters*: in gne it kept the persona while losing no capability, a strong
+  answer to "does steering make the model dumber?" for our mixer.

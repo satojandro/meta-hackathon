@@ -59,6 +59,12 @@
    (scientist) on known-answer maths; sycophancy test for N7776 + on false statements; "does it notice?" and
    override tests for N2048 −.
 5. Port to Glimmer on Modal (Sat–Sun). Atlas web app + persona mixer (Mon–Tue). Demo video (Wed).
+   **Port caveat (found 1 Nov from the Glimmer weight index):** every Glimmer layer has `pre_feedforward_layernorm` and
+   `post_feedforward_layernorm` (Gemma-style sandwich norms), an attention `gate_proj`, and config `output_multiplier`
+   0.196 (≈ 1/√26) plus `final_logit_softcapping` 20. Our pre-hook on the `down_proj` input gets re-normalised by the
+   post-FFN norm, so doses and norm-matched random controls lose their meaning. Fix (idea from neuron-explorer-gemma):
+   push *after* the post-FFN norm along the write column `s ⊙ W_down[:, n]` (s = that norm's weight), and check in the
+   modeling code whether `output_multiplier` scales each residual branch (then divide the push by it).
 
 ## Hackathon rules that constrain the code
 - Public repo. **New work only**: everything here is written during the event. Do NOT copy code from
