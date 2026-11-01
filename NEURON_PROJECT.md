@@ -52,6 +52,8 @@ characters by turning neuron dials instead of writing prompts.
 - **Fri**: steering pipeline, tested on Llama 3.2 1B on the MacBook (24 GB).
 - **Sat–Sun**: Glimmer on Modal (A100/H100 80GB). KL screen of all neurons → full rollouts for top candidates →
   Spark agent labels them against random-direction controls.
+  *Status 1 Nov:* the whole pipeline works on Llama 3.2 1B (screen → rollouts → blind Spark labels; L8: 22% of real
+  neuron poles vs 4% of random directions carry a consistent theme). Glimmer port is next.
 - **Mon–Tue**: atlas web app + persona mixer.
 - **Wed**: record demo. **Thu 5 Nov 1 PM Sydney**: submit.
 - **Bonus (far-fetched, only if time)**: train a persona LoRA on Glimmer (Fireworks, free until 30 Nov), re-map, and see

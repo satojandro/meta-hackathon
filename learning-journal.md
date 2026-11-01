@@ -304,3 +304,16 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
   odd concepts (N6567+ fingers and pointing, N1049− dice and lotteries), a values cluster (activism, colonialism,
   anti-discrimination: research note only, no politics in the demo) and safety-relevant ones (N4366+ graphic
   violence, N871+ hostility) that we report but never expose as dials.
+
+### Moving the scratch pipeline into the repo (1 Nov)
+- **Scratch first, repo second**: the rollout and labeling code was written as throwaway scripts on the Mini, run
+  for real, fixed three times (filters, labeler prompt, memory), and only then moved into `src/persona_atlas/`
+  (`rollouts.py`, `label.py`) with tests. *Why it matters*: the first version of the filters rejected everything,
+  including our best neuron; committing it untested would have baked that in.
+- **Testing generation without a real model**: a tiny random Llama checks that one batched `generate()` with a
+  different push per row gives exactly the same tokens as steering one neuron at a time; a fake "model" that always
+  returns the same tokens checks where answers stop. *Why it matters*: batching bugs are silent; the outputs still
+  look like text.
+- **Label noise**: re-labeling N2048 − gave the same theme ("false human life memories") but flipped the fluent
+  flag, even at temperature 0. *Why it matters*: a yes/no from an LLM on a borderline case is a coin flip, so the
+  final atlas should keep a theme only when two labels agree.

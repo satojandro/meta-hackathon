@@ -51,7 +51,7 @@ META_API_BASE=https://api.meta.ai/v1
 **4. Verify**
 
 ```bash
-uv run pytest                    # 6 checks on a tiny random Llama: ~10 s, no download
+uv run pytest                    # 24 checks on a tiny random Llama: a few seconds, no download
 uv run python scripts/smoke.py   # real model: downloads 2.5 GB once, then answers "Who are you?",
                                  # steers three neurons at ±0.8 with random controls, and re-checks the baseline
 ```
@@ -87,7 +87,28 @@ Code lives in `src/persona_atlas/`:
 - `model.py`: load a model on CUDA / MPS / CPU, greedy chat replies.
 - `calibrate.py`: median residual-stream norm per layer (the unit for steering doses).
 - `steering.py`: push one MLP neuron (or a size-matched random control) at the input to `down_proj`.
-- `scripts/smoke.py`: end-to-end check on whatever machine you are on.
+- `screen.py`: the batched KL "steer lens" screen, prompt families, collapse flag, percentile among neurons.
+- `rollouts.py`: shortlist, batched generation with one push per row, junk filters, picking what gets labeled.
+- `label.py`: blind Muse Spark labels (normal / light / strong push side by side) and the theme rule.
+
+## The pipeline, one layer at a time
+
+```bash
+uv run python scripts/smoke.py                                   # plumbing check on this machine
+uv run python scripts/screen.py --layer 8 --show 2048            # 1. KL screen: every neuron, +-0.5, 8 prompts
+uv run python scripts/rollouts.py runs/kl_<model>_L8_broad.parquet --layer 8 --force 2048- 947+
+                                                                 # 2. real answers for the top 10% per family
+uv run python scripts/label.py --layer 8 --max-calls 450         # 3. blind Spark labels + random controls
+```
+
+| Step | What it answers | Llama 3.2 1B, L8, Mac Mini |
+|---|---|---|
+| Screen | which neurons change *anything*, and on which prompt family | 16,384 poles, ~1 h 50 min |
+| Rollouts | what the changed answers actually say; drops collapsed / unchanged / word-salad text | 2,892 poles x 2 doses x 10 prompts, ~2 h 15 min |
+| Labels | is it one recognisable theme, and how often does the labeler see themes in random noise? | 408 calls: real 22% vs random 4% |
+
+Outputs go to `runs/` (gitignored, parquet). Why each step exists, and what went wrong on the way, is in
+[learning-journal.md](learning-journal.md).
 
 ## Built during the hackathon
 All code and content in this repository was written during the event (from 30 Oct 2026). Commit history is the record.

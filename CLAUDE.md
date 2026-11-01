@@ -21,7 +21,7 @@
 - When a session finishes a task, makes a decision or finds a neuron, update the matching Notion database (if the
   session has Notion access) as well as the repo.
 
-## Decisions so far (30–31 Oct)
+## Decisions so far (30 Oct – 1 Nov)
 - Project: **Idea A, persona-neuron atlas**. Muse Spark (hosted, Meta Model API) is the research agent and labeler;
   **Muse Glimmer 30B** (open weights, dense, SwiGLU, Apache 2.0) is the model we map.
 - Not mapping Muse Spark: hosted = closed; Spark Open = 816B MoE, too big and the method doesn't transfer.
@@ -49,10 +49,15 @@
    mostly text-breakers; a dose sweep showed concept neurons collapse by 0.65–1.0. v2 (commit 2d4e0e4): 8 prompts in
    4 families, ±0.5, 24 tokens, collapse flag, rank among neurons; ~1 h 50 min per layer on the Mini. Both versions
    miss the best candidate, L8 N2048 − (leaks a human backstory on indirect prompts), so the screen only shortlists.
-4b. **Rollouts + blind Spark labels** (in progress): shortlist = top 10% within any prompt family + known candidates;
-   batched rollouts at 0.5/0.8 on 8 + 2 held-out prompts; fluency and cross-prompt consistency filters vs random
-   controls; Muse Spark labels blind with random controls mixed in. Scratch scripts on the Mini first, into the repo
-   once the output looks right. "Interesting" = hidden knowledge, values/override, capability levers (Notion Decisions).
+4b. ~~Rollouts + blind Spark labels~~ (done 1 Nov, now `rollouts.py` / `label.py` + scripts): L8 shortlist of 2,892
+   poles, 57,840 rollouts, 408 blind labels; **real 22% vs random 4%** consistent fluent theme. N2048 − confirmed.
+   Lessons: show the labeler light + strong pushes side by side; label a random sample (46% themed) not just the
+   top of a ranking (12%); free the MPS cache per batch (it reached 10 GB and pushed the Mini into swap). The
+   labeler's fluent/consistent flags are noisy on borderline poles: label twice for the final atlas.
+4c. **Next on Llama** (cheap, before or alongside Glimmer): bigger random sample of L8 usable poles (~1,200 themed
+   poles estimated unlabeled); low-dose rollouts for N947 + (British, window 0.2–0.35); capability test for N762 −
+   (scientist) on known-answer maths; sycophancy test for N7776 + on false statements; "does it notice?" and
+   override tests for N2048 −.
 5. Port to Glimmer on Modal (Sat–Sun). Atlas web app + persona mixer (Mon–Tue). Demo video (Wed).
 
 ## Hackathon rules that constrain the code
