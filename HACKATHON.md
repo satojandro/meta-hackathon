@@ -55,6 +55,11 @@ Creativity, technical ambition, and whether it works.
 4. Lab notebook agent (Push the Frontier): logs observations from experiment footage
 
 ## Plan
+*Updated 1 Nov:* persona project, small scope, Llama 3.2 1B on the Mini (see CLAUDE.md "Current direction").
+Sun 1 Nov: fair L4/L8 rerun + start the demo screen. Mon–Tue: demo screen + headline finding (+ gauge if time,
+Glimmer only if everything is done). Wed: video. Thu morning: submit.
+
+Original plan:
 - Fri 30 Oct: lock idea
 - Sun 1 Nov: rough version working end to end
 - Mon–Tue: polish + one "wow" feature

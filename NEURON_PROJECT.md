@@ -1,6 +1,17 @@
 # Idea 1: Persona-neuron atlas for Muse Glimmer
 
-Status: leading candidate for the Meta hackathon (30 Oct 2026). Worth returning to even if not picked.
+Status: **the chosen project.** Scope cut on 1 Nov: the submission runs on **Llama 3.2 1B** on the Mac Mini, with
+Glimmer as a stretch goal. See "Current scope" below; the sections after it are the original, bigger vision.
+
+## Current scope (1 Nov)
+- **Demo screen**: "Who are you?" with one dial that changes the answer, and a "random dial" button that doesn't.
+- **Headline finding**: ranking neurons by how much they change the output mostly finds text-breakers and misses
+  identity neurons (L8: corr(KL, task) 0.97 vs corr(KL, identity) 0.68; top-ranked poles themed 12% vs random 46%;
+  the screen missed N2048 −).
+- **Fair layer comparison**: L4 vs L8 rerun with matched settings before we say anything about layers.
+- Optional: the "remaining futures" gauge. Video Wed, submit Thu morning.
+- Not in the submission: the persona mixer, the research agent loop, the full atlas web app, Glimmer (unless time).
+- **Don't claim** that dials resist "ignore your instructions" unless we test it; it's untested.
 
 ## One-liner
 A neuroscience lab for Meta's models: a Muse Spark agent maps the persona neurons inside Muse Glimmer, and you build
@@ -40,7 +51,7 @@ characters by turning neuron dials instead of writing prompts.
 - Keep political and medical examples out of the demo (the original Qwen work found a "president neuron").
   Pirates, aliens and football clubs are safe.
 
-## 3-minute demo outline
+## 3-minute demo outline (original vision; see "Current scope")
 1. Ask Glimmer "Who are you?" and get the normal answer.
 2. Drag one slider: it becomes an alien.
 3. The agent finds that neuron live, including rejecting a false lead that failed random controls.
@@ -48,7 +59,7 @@ characters by turning neuron dials instead of writing prompts.
 5. Mix a custom character; show it ignores "ignore your instructions".
 6. Close on the layer finding.
 
-## Build plan
+## Build plan (original; superseded by "Current scope" on 1 Nov)
 - **Fri**: steering pipeline, tested on Llama 3.2 1B on the MacBook (24 GB).
 - **Sat–Sun**: Glimmer on Modal (A100/H100 80GB). KL screen of all neurons → full rollouts for top candidates →
   Spark agent labels them against random-direction controls.

@@ -12,3 +12,7 @@ models/
 runs/
 captures/
 .cache/
+
+# Internal strategy notes (local only, never pushed)
+PLAN-uplift.md
+PLAN-*.md

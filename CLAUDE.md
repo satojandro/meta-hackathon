@@ -21,9 +21,32 @@
 - When a session finishes a task, makes a decision or finds a neuron, update the matching Notion database (if the
   session has Notion access) as well as the repo.
 
+## Current direction (decided 1 Nov, read this first)
+**Finish the persona project small, on Llama 3.2 1B on the Mac Mini.** No pivot. Glimmer is a stretch goal only if
+everything below is done by Tue 3 Nov. Alejandro found the week overwhelming: keep the scope small, explain in plain
+English, one step at a time.
+1. **Fair rerun (E1)**, runs in the background on the Mini (~2 h): L4 and L8 with the *same* settings (dose 0.5,
+   24 answer tokens, the 8 broad prompts, same hit rule), so the layer comparison is no longer a dose artefact (the
+   old L4 run used dose 1.0, 12 tokens, 5 prompts).
+2. **One demo screen**: the model answers "Who are you?"; turn one dial (e.g. L8 N2048 −) and the answer changes; a
+   "random dial" button pushes a random direction of the same size and does *not* give a theme (false-lead rejection).
+3. **One headline finding** (Pillar A of the uplift memo): *the usual search, ranking by how much a neuron changes
+   the output, mostly finds text-breakers and misses identity neurons.* Evidence we already have: corr(KL, task
+   effect) 0.97 vs corr(KL, identity effect) 0.68 at L8; top-ranked poles themed 12% vs a random sample 46%; the
+   screen missed our best neuron N2048 −.
+4. **Optional**, only if 2 is done early: the "remaining futures" gauge (top next-token probabilities collapsing to
+   one bar as the dose rises).
+5. Demo video Wed 4 Nov; submit Thu 5 Nov morning.
+
+**Skipped / parked** (don't start these unless Alejandro asks): Glimmer port (stretch only), atlas web app, persona
+mixer, research-agent loop, minimal-neuron-set proof, recipe "standard", 1B→3B transfer, extra dose experiments,
+persona directions, the prompt-injection tripwire idea (parked for after the event).
+Source: `PLAN-uplift.md` (strategy memo, 31 Oct; a local file on Alejandro's Mac, not in the repo).
+
 ## Decisions so far (30 Oct – 1 Nov)
-- Project: **Idea A, persona-neuron atlas**. Muse Spark (hosted, Meta Model API) is the research agent and labeler;
-  **Muse Glimmer 30B** (open weights, dense, SwiGLU, Apache 2.0) is the model we map.
+- Project: **Idea A, persona-neuron atlas**. Muse Spark (hosted, Meta Model API) is the labeler. Originally Muse
+  Glimmer 30B was the model to map; since 1 Nov the submission runs on **Llama 3.2 1B** (Meta open weights) and
+  Glimmer is a stretch goal.
 - Not mapping Muse Spark: hosted = closed; Spark Open = 816B MoE, too big and the method doesn't transfer.
 - Idea B (Qwenputer-style CPU in the weights) is parked: Glimmer has no Gated DeltaNet layers.
 - Develop on **Llama 3.2 1B locally** (MacBook, 24 GB, Apple MPS), then run the same code on **Glimmer on Modal**
@@ -37,7 +60,7 @@
   **Always start Mini sessions with `permission_mode: "auto"`.** This only works if the cloud session starting it is itself
   in Auto mode (a child can't be looser than its parent); if not, ask Alejandro to switch it first.
 
-## Next steps (in order)
+## History of steps (superseded by "Current direction" above)
 1. ~~Python project scaffold~~ (done 30 Oct): uv project, package `persona_atlas` in `src/`, tests in `tests/`.
 2. ~~Steering core~~ (done 30 Oct): `steering.py` (`neuron_steer`, `random_steer`, `steering()` context manager,
    pre-hook on `down_proj` input), `calibrate.py` (`residual_norms`, median per layer, BOS skipped). Dose 1.0 =
@@ -58,7 +81,7 @@
    poles estimated unlabeled); low-dose rollouts for N947 + (British, window 0.2–0.35); capability test for N762 −
    (scientist) on known-answer maths; sycophancy test for N7776 + on false statements; "does it notice?" and
    override tests for N2048 −.
-5. Port to Glimmer on Modal (Sat–Sun). Atlas web app + persona mixer (Mon–Tue). Demo video (Wed).
+5. ~~Port to Glimmer on Modal (Sat–Sun). Atlas web app + persona mixer (Mon–Tue).~~ Now a stretch goal only.
    **Port caveat (found 1 Nov from the Glimmer weight index):** every Glimmer layer has `pre_feedforward_layernorm` and
    `post_feedforward_layernorm` (Gemma-style sandwich norms), an attention `gate_proj`, and config `output_multiplier`
    0.196 (≈ 1/√26) plus `final_logit_softcapping` 20. Our pre-hook on the `down_proj` input gets re-normalised by the
