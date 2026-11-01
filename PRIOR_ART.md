@@ -31,3 +31,23 @@ Some neurons respond per language (e.g. president neuron, football-club neuron).
 MIT lets us reuse code, but the rules require the demo to show only work built during the event and make original
 contributions clearly identifiable. Decision: do NOT fork. Write our own implementation for a Meta model, credit these
 projects in the README.
+
+## stdlogits/neuron-lens (MIT code, CC BY 4.0 data; Qwen3-8B and Gemma 4 12B)
+https://github.com/stdlogits/neuron-lens · catalog: https://huggingface.co/datasets/stdlogits/neuron-lens
+A catalog of every MLP neuron pole and attention head, read from the weights (R-lens / S-lens Jacobian lenses),
+from activations on 15M tokens, and from exact token drivers; Claude Haiku labels for all 884k Qwen poles; blind
+tests of every label. No Meta model covered.
+
+Ideas we may borrow (written fresh, credited):
+- **Blind "pick one of four" check of write labels**: show the judge steered text and four same-layer labels.
+- **KL-matched dose ladder** (0.5 / 1 / 2 nats) instead of a single residual-norm dose.
+- **Check steering labels against activations**: their §10 found labels from steering one "Who are you?" prompt are
+  the ones activations most often contradict. A short "where does it fire in real text" line per atlas entry would
+  make ours more trustworthy.
+- **Logit-lens read of a write vector** as a free extra column next to our KL screen.
+- Framing: steering shows a neuron's average push, not what it does when it fires (§4). We present levers, not meanings.
+
+## Neuron Persona Library (neuronpersonas.com, by jfonsecarivera)
+34,220 Qwen poles whose push on "Who are you?" made the model claim a persona, named by Claude Haiku. The closest
+existing thing to our atlas. neuron-lens judged it: ~34% of rows clearly match the neuron's lens reads (control 3–6%).
+Our differences: several prompt families instead of one, random-direction controls, blind labels, and a Meta model.

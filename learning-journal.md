@@ -317,3 +317,34 @@ Format: **Concept**: plain-English explanation. *Why it matters* / source.
 - **Label noise**: re-labeling N2048 − gave the same theme ("false human life memories") but flipped the fluent
   flag, even at temperature 0. *Why it matters*: a yes/no from an LLM on a borderline case is a coin flip, so the
   final atlas should keep a theme only when two labels agree.
+
+## Sun 1 Nov 2026: reading neuron-lens (stdlogits)
+Source: https://github.com/stdlogits/neuron-lens (catalog of every MLP neuron and head of Qwen3-8B and Gemma 4 12B).
+- **Logit lens**: read a vector from inside the model as if it were already at the output (multiply by the
+  unembedding `W_U` after the final norm) to see which tokens it "says". Free, no forward pass, but mostly noise in
+  early layers because the later layers still transform the vector a lot. *Why it matters*: the cheapest possible
+  first look at what a neuron's write vector pushes toward.
+  [nostalgebraist 2020](https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens)
+- **J-lens / R-lens (Jacobian lenses)**: instead of ignoring the later layers, measure how they react on average to a
+  small change at layer L (the Jacobian, averaged over a corpus), then read through `W_U`. The R-lens uses
+  simplified gradient rules (RelP) and is more faithful in early and middle layers. neuron-lens shows the R-lens read
+  of a neuron's write predicts what *steering* it does (r ≈ 0.5 at layer 8 of Qwen3-8B, 0.9+ late), with no
+  forward pass per neuron. *Why it matters*: it's a weight-only version of our KL screen. Fitting one costs ~3 GPU-hours
+  for an 8B model, so for Glimmer it's a "maybe", not a given.
+  [R-lens post](https://www.lesswrong.com/posts/nv8oedrnLXKRzNEL9/r-lens-making-j-lens-more-faithful-on-early-layers)
+- **Steering ≠ firing**: adding a neuron's write at many times its natural size shows its *average push*, but in real
+  text a mid-network neuron's effect when it fires naturally depends heavily on context (r 0.05–0.11 between one
+  context and its other firings before layer 21). *Why it matters*: our atlas describes **levers** (what pushing a
+  neuron does), not "what the neuron means". We should say so plainly, and it's a fair claim for a persona mixer.
+- **Detection scoring (AUROC)**: to check a "where it fires" label, give a fresh model the label plus a shuffled mix
+  of held-out real firings and quiet text, and ask it to pick the firings. AUROC 0.5 = chance, 1.0 = perfect.
+  *Why it matters*: turns a label from an opinion into a number. (Paulo et al. 2024.)
+- **Pick-one-of-four write scoring**: to check a "what it does when pushed" label, show a judge the steered text plus
+  four labels from the same layer and ask which label caused it (chance 25%). *Why it matters*: a cleaner, more
+  convincing metric than our yes/no "consistent theme" flag, which proved noisy on borderline poles.
+- **KL-matched doses**: neuron-lens sets each neuron's steering dose so that the next-token distribution moves by a
+  fixed 0.5, 1 or 2 nats of KL, instead of one dose for every neuron. *Why it matters*: our concept neurons collapse at
+  very different doses (N947 + only works at 0.2–0.35); a per-neuron KL-matched dose ladder could fix that.
+- **Dark neurons**: 57% of Qwen3-8B poles fire but pass no token-level test, and they make up 82% of layers 13–20.
+  *Why it matters*: the middle of the network is the hardest to read from any side, which fits our finding that
+  persona levers cluster earlier.
